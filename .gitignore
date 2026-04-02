@@ -1,0 +1,18 @@
+# clasp local config
+.clasp.json
+.claspignore
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Test artifacts
+/tmp/
+coverage/

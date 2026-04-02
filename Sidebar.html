@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      font-size: 13px;
+      color: #202124;
+      background: #fff;
+      overflow-x: hidden;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 16px;
+      transition: background 0.15s;
+    }
+    input, select {
+      font-family: inherit;
+      font-size: 13px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      padding: 7px 10px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: #4285f4; }
+    a { color: #4285f4; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    #app { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── Header ── */
+    .header {
+      background: #4285f4;
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .header-icon { font-size: 20px; }
+    .header-title { font-size: 15px; font-weight: 500; flex: 1; }
+    .header-tab {
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    .header-tab.active { background: rgba(255,255,255,0.2); color: #fff; }
+    .header-tab:hover { background: rgba(255,255,255,0.15); }
+
+    /* ── Main content ── */
+    #main { flex: 1; padding: 16px; }
+
+    /* ── Onboarding overlay ── */
+    #wizard {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+    .wizard-header {
+      background: #4285f4;
+      color: #fff;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .wizard-body { flex: 1; padding: 20px 16px; overflow-y: auto; }
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; }
+    .wizard-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #e8eaed;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .step-dots { display: flex; gap: 6px; }
+    .step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #dadce0;
+    }
+    .step-dot.active { background: #4285f4; }
+
+    /* ── Buttons ── */
+    .btn-primary { background: #4285f4; color: #fff; }
+    .btn-primary:hover { background: #3367d6; }
+    .btn-secondary { background: #f1f3f4; color: #202124; }
+    .btn-secondary:hover { background: #e8eaed; }
+    .btn-danger { background: #ea4335; color: #fff; }
+    .btn-danger:hover { background: #c62828; }
+    .btn-text { background: transparent; color: #4285f4; padding: 8px 4px; }
+    .btn-text:hover { text-decoration: underline; }
+    .btn-full { width: 100%; }
+
+    /* ── Slot list ── */
+    .slot-card {
+      border: 1px solid #e8eaed;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .slot-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .slot-option { font-weight: 500; font-size: 13px; flex: 1; margin-right: 8px; }
+    .slot-question { font-size: 11px; color: #5f6368; margin-top: 2px; }
+    .slot-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .badge-ok   { background: #e6f4ea; color: #137333; }
+    .badge-warn { background: #fef7e0; color: #b06000; }
+    .badge-full { background: #fce8e6; color: #c5221f; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      background: #f1f3f4;
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+      margin: 8px 0 4px;
+    }
+    .progress-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    .progress-ok   { background: #34a853; }
+    .progress-warn { background: #fbbc04; }
+    .progress-full { background: #ea4335; }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #5f6368;
+    }
+
+    .slot-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+    /* ── Add slot form ── */
+    #add-form { display: none; }
+    #add-form.open { display: block; }
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+    .form-row { display: flex; gap: 8px; }
+    .form-row > * { flex: 1; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #5f6368;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-title { font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 6px; }
+    .empty-desc { font-size: 12px; line-height: 1.5; }
+
+    /* ── Account tab ── */
+    .account-section { margin-bottom: 24px; }
+    .account-section-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .license-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #e8eaed;
+      margin-bottom: 10px;
+    }
+    .license-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-active { background: #34a853; }
+    .dot-none   { background: #dadce0; }
+    .freemium-bar {
+      background: #f1f3f4;
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+      margin: 8px 0 4px;
+    }
+    .freemium-fill { height: 100%; background: #4285f4; border-radius: 4px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      background: #323232;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ── Loading ── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #dadce0;
+      border-top-color: #4285f4;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-center { text-align: center; padding: 32px; color: #5f6368; }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid #e8eaed; margin: 16px 0; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Onboarding Wizard ─────────────────────────────────────────────── -->
+  <div id="wizard">
+    <div class="wizard-header">Welcome to Form Event Toolkit</div>
+    <div class="wizard-body">
+
+      <!-- Step 1: What it does -->
+      <div class="wizard-step active" id="step-1">
+        <div style="font-size:36px;margin-bottom:16px;">🎟️</div>
+        <h2 style="font-size:16px;margin-bottom:10px;">Limit slots on your form options</h2>
+        <p style="color:#5f6368;line-height:1.6;margin-bottom:16px;">
+          Set a maximum number of registrations for any multiple-choice or checkbox option.
+          When the limit is reached, that option is automatically removed from your form.
+        </p>
+        <div style="background:#f8f9fa;border-radius:8px;padding:12px;font-size:12px;color:#5f6368;">
+          <strong style="color:#202124">Example:</strong><br>
+          "Morning session — 20 spots" → automatically closes when 20 people register.
+        </div>
+      </div>
+
+      <!-- Step 2: How it works -->
+      <div class="wizard-step" id="step-2">
+        <div style="font-size:36px;margin-bottom:16px;">⚙️</div>
+        <h2 style="font-size:16px;margin-bottom:10px;">How it works</h2>
+        <ol style="color:#5f6368;line-height:1.8;padding-left:20px;font-size:12px;">
+          <li>You pick a question and option, set a slot limit</li>
+          <li>We watch for new submissions in real time</li>
+          <li>When the slot fills up, the option disappears from your form automatically</li>
+          <li>You get an email alert at 75%, 90%, and 100% full</li>
+        </ol>
+        <div style="margin-top:16px;background:#e8f0fe;border-radius:8px;padding:12px;font-size:12px;color:#1a73e8;">
+          <strong>Note:</strong> In rare cases of simultaneous submissions, 1–2 extra responses may be accepted before the slot closes. This is disclosed in your setup.
+        </div>
+      </div>
+
+      <!-- Step 3: Ready -->
+      <div class="wizard-step" id="step-3">
+        <div style="font-size:36px;margin-bottom:16px;">✅</div>
+        <h2 style="font-size:16px;margin-bottom:10px;">You're ready to go</h2>
+        <p style="color:#5f6368;line-height:1.6;margin-bottom:16px;">
+          Click "Get started" to configure your first slot limit.
+        </p>
+        <div style="background:#e6f4ea;border-radius:8px;padding:12px;font-size:12px;color:#137333;">
+          <strong>Free tier:</strong> 1 form per month, unlimited options per form.<br>
+          Upgrade to paid for unlimited forms.
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-footer">
+      <div class="step-dots">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" id="btn-prev" onclick="wizardPrev()" style="display:none;">Back</button>
+        <button class="btn-primary" id="btn-next" onclick="wizardNext()">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main UI ─────────────────────────────────────────────────────────── -->
+  <div class="header">
+    <span class="header-icon">🎟️</span>
+    <span class="header-title">Event Toolkit</span>
+    <button class="header-tab active" id="tab-slots" onclick="showTab('slots')">Slots</button>
+    <button class="header-tab" id="tab-account" onclick="showTab('account')">Account</button>
+  </div>
+
+  <div id="main">
+
+    <!-- ── SLOTS TAB ── -->
+    <div id="view-slots">
+      <div id="slots-loading" class="loading-center">
+        <div class="spinner"></div><br>Loading…
+      </div>
+      <div id="slots-list" style="display:none;"></div>
+      <div id="slots-empty" class="empty-state" style="display:none;">
+        <div class="empty-icon">🗳️</div>
+        <div class="empty-title">No slot limits yet</div>
+        <div class="empty-desc">Add a slot limit to automatically close a form option when it fills up.</div>
+      </div>
+
+      <hr class="divider" id="add-divider">
+
+      <!-- Add Slot Button -->
+      <button class="btn-primary btn-full" id="btn-add-slot" onclick="toggleAddForm()">+ Add slot limit</button>
+
+      <!-- Add Slot Form -->
+      <div id="add-form">
+        <hr class="divider">
+        <h3 style="font-size:13px;font-weight:500;margin-bottom:12px;">Configure a slot limit</h3>
+
+        <div class="form-group">
+          <label class="form-label" for="sel-question">Question</label>
+          <select id="sel-question" onchange="onQuestionChange()">
+            <option value="">— Select a question —</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="sel-option">Option to limit</label>
+          <select id="sel-option">
+            <option value="">— Select an option —</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inp-limit">Slot limit</label>
+          <input type="number" id="inp-limit" min="1" placeholder="e.g. 20">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inp-email">Alert email (optional)</label>
+          <input type="email" id="inp-email" placeholder="admin@example.com">
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" style="flex:1" onclick="toggleAddForm()">Cancel</button>
+          <button class="btn-primary" style="flex:1" id="btn-save" onclick="saveSlot()">Save</button>
+        </div>
+        <div id="save-error" style="color:#ea4335;font-size:12px;margin-top:8px;display:none;"></div>
+      </div>
+    </div>
+
+    <!-- ── ACCOUNT TAB ── -->
+    <div id="view-account" style="display:none;">
+
+      <div class="account-section">
+        <div class="account-section-title">Plan</div>
+        <div id="plan-loading" class="loading-center"><div class="spinner"></div></div>
+        <div id="plan-free" style="display:none;">
+          <div class="license-status">
+            <div class="license-dot dot-none"></div>
+            <div>
+              <div style="font-weight:500;">Free tier</div>
+              <div style="font-size:11px;color:#5f6368;" id="freemium-desc">1 form / month</div>
+            </div>
+          </div>
+          <div class="freemium-bar">
+            <div class="freemium-fill" id="freemium-fill" style="width:0%"></div>
+          </div>
+          <div style="font-size:11px;color:#5f6368;margin-bottom:12px;" id="freemium-label"></div>
+          <button class="btn-primary btn-full" onclick="openCheckout()">Upgrade — $5/mo or $40/yr</button>
+          <div style="font-size:11px;color:#5f6368;text-align:center;margin-top:6px;">Unlimited forms · No hidden trials</div>
+        </div>
+        <div id="plan-paid" style="display:none;">
+          <div class="license-status">
+            <div class="license-dot dot-active"></div>
+            <div>
+              <div style="font-weight:500;">Paid plan active</div>
+              <div style="font-size:11px;color:#5f6368;" id="license-key-display"></div>
+            </div>
+          </div>
+          <button class="btn-text" onclick="deactivateLicense()" style="font-size:12px;">Remove license</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="account-section">
+        <div class="account-section-title">Uninstall cleanup</div>
+        <div style="font-size:12px;color:#5f6368;margin-bottom:10px;">
+          Before removing this add-on, clear your data to delete all triggers and stored settings.
+        </div>
+        <button class="btn-secondary btn-full" onclick="clearAllData()">Clear all data</button>
+      </div>
+
+      <hr class="divider">
+
+      <div class="account-section" id="activate-section">
+        <div class="account-section-title">Activate license key</div>
+        <div style="font-size:12px;color:#5f6368;margin-bottom:10px;">
+          Already purchased? Enter your key from the LemonSqueezy confirmation email.
+        </div>
+        <div class="form-group">
+          <input type="text" id="inp-license" placeholder="xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx" spellcheck="false">
+        </div>
+        <button class="btn-primary btn-full" id="btn-activate" onclick="activateLicense()">Activate</button>
+        <div id="activate-error" style="color:#ea4335;font-size:12px;margin-top:8px;display:none;"></div>
+        <div id="activate-ok" style="color:#137333;font-size:12px;margin-top:8px;display:none;">✓ License activated!</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+
+var _questions  = [];   // [{ id, title, type, options }]
+var _slots      = [];   // [{ questionId, optionText, slotLimit, slotUsed, removed }]
+var _currentTab = 'slots';
+var _wizardStep = 1;
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+(function init() {
+  google.script.run
+    .withSuccessHandler(function(done) {
+      if (done) {
+        document.getElementById('wizard').style.display = 'none';
+        loadSlotsTab();
+      } else {
+        // Show wizard
+      }
+    })
+    .withFailureHandler(function() {
+      document.getElementById('wizard').style.display = 'none';
+      loadSlotsTab();
+    })
+    .isOnboardingComplete();
+})();
+
+// ── Wizard ───────────────────────────────────────────────────────────────────
+
+function wizardNext() {
+  if (_wizardStep < 3) {
+    _wizardStep++;
+    updateWizard();
+  } else {
+    finishWizard();
+  }
+}
+
+function wizardPrev() {
+  if (_wizardStep > 1) {
+    _wizardStep--;
+    updateWizard();
+  }
+}
+
+function updateWizard() {
+  for (var i = 1; i <= 3; i++) {
+    var step = document.getElementById('step-' + i);
+    var dot  = document.getElementById('dot-' + i);
+    if (step) step.className = 'wizard-step' + (i === _wizardStep ? ' active' : '');
+    if (dot)  dot.className  = 'step-dot'    + (i === _wizardStep ? ' active' : '');
+  }
+  var btnPrev = document.getElementById('btn-prev');
+  var btnNext = document.getElementById('btn-next');
+  if (btnPrev) btnPrev.style.display = _wizardStep > 1 ? '' : 'none';
+  if (btnNext) btnNext.textContent   = _wizardStep === 3 ? 'Get started' : 'Next';
+}
+
+function finishWizard() {
+  google.script.run.markOnboardingComplete();
+  document.getElementById('wizard').style.display = 'none';
+  loadSlotsTab();
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+
+function showTab(tab) {
+  _currentTab = tab;
+  document.getElementById('view-slots').style.display   = tab === 'slots'   ? '' : 'none';
+  document.getElementById('view-account').style.display = tab === 'account' ? '' : 'none';
+  document.getElementById('tab-slots').className   = 'header-tab' + (tab === 'slots'   ? ' active' : '');
+  document.getElementById('tab-account').className = 'header-tab' + (tab === 'account' ? ' active' : '');
+  if (tab === 'account') loadAccountTab();
+}
+
+// ── Slots tab ─────────────────────────────────────────────────────────────────
+
+function loadSlotsTab() {
+  document.getElementById('slots-loading').style.display = '';
+  document.getElementById('slots-list').style.display    = 'none';
+  document.getElementById('slots-empty').style.display   = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(slots) {
+      _slots = slots || [];
+      renderSlots();
+      document.getElementById('slots-loading').style.display = 'none';
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('slots-loading').style.display = 'none';
+      showToast('Error loading slots');
+    })
+    .getSlotConfigs();
+
+  // Also pre-load questions for the add form
+  google.script.run
+    .withSuccessHandler(function(qs) {
+      _questions = qs || [];
+      populateQuestionSelect();
+    })
+    .getFormQuestions();
+}
+
+function renderSlots() {
+  var list = document.getElementById('slots-list');
+  var empty = document.getElementById('slots-empty');
+
+  if (_slots.length === 0) {
+    list.style.display  = 'none';
+    empty.style.display = '';
+    return;
+  }
+
+  list.innerHTML = '';
+  _slots.forEach(function(slot) {
+    list.appendChild(buildSlotCard(slot));
+  });
+  list.style.display  = '';
+  empty.style.display = 'none';
+}
+
+function buildSlotCard(slot) {
+  var pct     = slot.slotLimit > 0 ? Math.round((slot.slotUsed / slot.slotLimit) * 100) : 0;
+  var isFull  = slot.removed || pct >= 100;
+  var isWarn  = !isFull && pct >= 75;
+  var barClass = isFull ? 'progress-full' : (isWarn ? 'progress-warn' : 'progress-ok');
+  var badgeClass = isFull ? 'badge-full' : (isWarn ? 'badge-warn' : 'badge-ok');
+  var badgeText  = isFull ? 'FULL' : (pct + '%');
+
+  var card = document.createElement('div');
+  card.className = 'slot-card';
+  card.innerHTML =
+    '<div class="slot-card-header">' +
+      '<div>' +
+        '<div class="slot-option">' + esc(slot.optionText) + '</div>' +
+      '</div>' +
+      '<span class="slot-badge ' + badgeClass + '">' + badgeText + '</span>' +
+    '</div>' +
+    '<div class="progress-wrap"><div class="progress-bar ' + barClass + '" style="width:' + Math.min(pct,100) + '%"></div></div>' +
+    '<div class="progress-label"><span>' + slot.slotUsed + ' used</span><span>' + slot.slotLimit + ' limit</span></div>' +
+    '<div class="slot-actions">' +
+      '<button class="btn-secondary" style="font-size:12px;padding:5px 10px;" data-qid="' + esc(slot.questionId) + '" data-opt="' + esc(slot.optionText) + '" onclick="resetSlot(this.dataset.qid, this.dataset.opt)">Reset</button>' +
+      '<button class="btn-danger" style="font-size:12px;padding:5px 10px;" data-qid="' + esc(slot.questionId) + '" data-opt="' + esc(slot.optionText) + '" onclick="deleteSlot(this.dataset.qid, this.dataset.opt)">Delete</button>' +
+    '</div>';
+  return card;
+}
+
+// ── Add slot form ─────────────────────────────────────────────────────────────
+
+function toggleAddForm() {
+  var form = document.getElementById('add-form');
+  var isOpen = form.classList.contains('open');
+  if (isOpen) {
+    form.classList.remove('open');
+    document.getElementById('btn-add-slot').textContent = '+ Add slot limit';
+  } else {
+    form.classList.add('open');
+    document.getElementById('btn-add-slot').textContent = '✕ Cancel';
+    populateQuestionSelect();
+  }
+  document.getElementById('save-error').style.display = 'none';
+}
+
+function populateQuestionSelect() {
+  var sel = document.getElementById('sel-question');
+  var current = sel.value;
+  sel.innerHTML = '<option value="">— Select a question —</option>';
+  _questions.forEach(function(q) {
+    var opt = document.createElement('option');
+    opt.value = q.id;
+    opt.textContent = q.title + ' (' + q.type + ')';
+    sel.appendChild(opt);
+  });
+  if (current) sel.value = current;
+}
+
+function onQuestionChange() {
+  var qId = document.getElementById('sel-question').value;
+  var sel = document.getElementById('sel-option');
+  sel.innerHTML = '<option value="">— Select an option —</option>';
+  if (!qId) return;
+  var q = null;
+  _questions.forEach(function(item) { if (item.id === qId) q = item; });
+  if (!q) return;
+  q.options.forEach(function(opt) {
+    var o = document.createElement('option');
+    o.value = opt;
+    o.textContent = opt;
+    sel.appendChild(o);
+  });
+}
+
+function saveSlot() {
+  var questionId = document.getElementById('sel-question').value;
+  var optionText = document.getElementById('sel-option').value;
+  var slotLimit  = document.getElementById('inp-limit').value;
+  var adminEmail = document.getElementById('inp-email').value;
+
+  var errEl = document.getElementById('save-error');
+  errEl.style.display = 'none';
+
+  if (!questionId) { showSaveError('Please select a question.'); return; }
+  if (!optionText) { showSaveError('Please select an option.');  return; }
+  if (!slotLimit || parseInt(slotLimit) < 1) { showSaveError('Enter a slot limit of at least 1.'); return; }
+
+  var btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.disabled = false;
+      btn.textContent = 'Save';
+      if (result.success) {
+        toggleAddForm();
+        showToast('Slot limit saved!');
+        loadSlotsTab();
+        // Clear form
+        document.getElementById('sel-question').value = '';
+        document.getElementById('sel-option').value   = '';
+        document.getElementById('inp-limit').value    = '';
+        document.getElementById('inp-email').value    = '';
+      } else {
+        showSaveError(result.error || 'Save failed.');
+        if (result.upgradeRequired) {
+          showUpgradeBanner();
+        }
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Save';
+      showSaveError('Unexpected error: ' + err.message);
+    })
+    .saveSlotConfig(questionId, optionText, slotLimit, adminEmail);
+}
+
+function showSaveError(msg) {
+  var el = document.getElementById('save-error');
+  el.textContent = msg;
+  el.style.display = '';
+}
+
+function showUpgradeBanner() {
+  showToast('Upgrade required — free tier limit reached');
+  setTimeout(function() { showTab('account'); }, 1500);
+}
+
+function deleteSlot(questionId, optionText) {
+  if (!confirm('Delete slot limit for "' + optionText + '"?\nThis cannot be undone.')) return;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        showToast('Slot deleted');
+        loadSlotsTab();
+      } else {
+        showToast('Delete failed: ' + (result.error || ''));
+      }
+    })
+    .withFailureHandler(function() { showToast('Delete failed'); })
+    .deleteSlotConfig(questionId, optionText);
+}
+
+function resetSlot(questionId, optionText) {
+  if (!confirm('Reset slot count for "' + optionText + '" to 0?\nThis will re-add the option to your form if it was removed.')) return;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        showToast('Slot reset to 0');
+        loadSlotsTab();
+      } else {
+        showToast('Reset failed: ' + (result.error || ''));
+      }
+    })
+    .withFailureHandler(function() { showToast('Reset failed'); })
+    .resetSlotUsed(questionId, optionText);
+}
+
+// ── Account tab ───────────────────────────────────────────────────────────────
+
+function loadAccountTab() {
+  document.getElementById('plan-loading').style.display = '';
+  document.getElementById('plan-free').style.display    = 'none';
+  document.getElementById('plan-paid').style.display    = 'none';
+
+  // Load billing info in parallel
+  google.script.run
+    .withSuccessHandler(function(info) {
+      document.getElementById('plan-loading').style.display = 'none';
+      if (info.status === 'active') {
+        document.getElementById('plan-free').style.display = 'none';
+        document.getElementById('plan-paid').style.display = '';
+        document.getElementById('license-key-display').textContent = info.maskedKey;
+        document.getElementById('activate-section').style.display = 'none';
+      } else {
+        document.getElementById('plan-free').style.display = '';
+        document.getElementById('plan-paid').style.display = 'none';
+        document.getElementById('activate-section').style.display = '';
+      }
+    })
+    .withFailureHandler(function() {
+      document.getElementById('plan-loading').style.display = 'none';
+    })
+    .getLicenseInfo();
+
+  google.script.run
+    .withSuccessHandler(function(status) {
+      if (status.isPaid) return;
+      var pct   = status.formsLimit > 0 ? Math.round((status.formsUsed / status.formsLimit) * 100) : 0;
+      document.getElementById('freemium-fill').style.width = Math.min(pct, 100) + '%';
+      document.getElementById('freemium-label').textContent =
+        status.formsUsed + ' of ' + status.formsLimit + ' free form used this month (' + status.month + ')';
+      document.getElementById('freemium-desc').textContent =
+        status.formsUsed + ' / ' + status.formsLimit + ' forms this month';
+    })
+    .withFailureHandler(function() {})
+    .getFreemiumStatus();
+}
+
+function openCheckout() {
+  google.script.run
+    .withSuccessHandler(function(url) {
+      window.open(url, '_blank');
+    })
+    .withFailureHandler(function() { showToast('Could not open checkout'); })
+    .getCheckoutUrl();
+}
+
+function activateLicense() {
+  var key    = document.getElementById('inp-license').value.trim();
+  var errEl  = document.getElementById('activate-error');
+  var okEl   = document.getElementById('activate-ok');
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!key) { errEl.textContent = 'Enter a license key.'; errEl.style.display = ''; return; }
+
+  var btn = document.getElementById('btn-activate');
+  btn.disabled = true;
+  btn.textContent = 'Activating…';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.disabled = false;
+      btn.textContent = 'Activate';
+      if (result.success) {
+        okEl.style.display = '';
+        document.getElementById('inp-license').value = '';
+        setTimeout(loadAccountTab, 1000);
+      } else {
+        errEl.textContent = result.error || 'Activation failed.';
+        errEl.style.display = '';
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Activate';
+      errEl.textContent = 'Unexpected error: ' + err.message;
+      errEl.style.display = '';
+    })
+    .activateLicense(key);
+}
+
+function deactivateLicense() {
+  if (!confirm('Remove your license? You will revert to the free tier.')) return;
+  google.script.run
+    .withSuccessHandler(function() { loadAccountTab(); showToast('License removed'); })
+    .withFailureHandler(function() { showToast('Could not remove license'); })
+    .deactivateLicense();
+}
+
+function clearAllData() {
+  if (!confirm('Clear all Form Event Toolkit data?\n\nThis will:\n• Delete all slot triggers on your forms\n• Remove all stored settings and license info\n\nYou should do this before uninstalling the add-on.')) return;
+
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('All data cleared. You can now uninstall the add-on.');
+      setTimeout(function() { loadAccountTab(); }, 500);
+    })
+    .withFailureHandler(function() { showToast('Clear failed — try again'); })
+    .onAddonUninstall();
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+var _toastTimer = null;
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>
