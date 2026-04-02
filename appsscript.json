@@ -18,18 +18,13 @@
       "layoutProperties": {
         "primaryColor": "#4285F4"
       },
+      "homepageTrigger": {
+        "runFunction": "onFormOpen"
+      },
       "openLinkUrlPrefixes": [
         "https://app.lemonsqueezy.com"
       ]
     },
-    "forms": {
-      "homepageTrigger": {
-        "runFunction": "onFormOpen",
-        "enabled": true
-      },
-      "onFormOpenTrigger": {
-        "runFunction": "onFormOpen"
-      }
-    }
+    "forms": {}
   }
 }
