@@ -55,13 +55,13 @@ cd google-forms-event-toolkit
 Either create a new Apps Script project:
 
 ```bash
-clasp create --type addon --title "Form Event Toolkit"
+clasp create --type standalone --title "Form Event Toolkit"
 ```
 
-Or link to an existing project:
+Or link to the existing project (script ID for gagafik@gmail.com):
 
 ```bash
-# Edit .clasp.json and set scriptId to your existing project ID
+echo '{"scriptId":"1KrmOLNuY-rMuj-9GfAyY-Ai_2ShMrvy8apwOVmoxAlYMxHVn5lNL06ke"}' > .clasp.json
 ```
 
 ### 3. Push code to Apps Script
