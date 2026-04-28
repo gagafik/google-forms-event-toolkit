@@ -41,19 +41,23 @@ function getFormQuestions() {
   items.forEach(function(item) {
     var type = item.getType();
     if (type !== FormApp.ItemType.MULTIPLE_CHOICE &&
-        type !== FormApp.ItemType.CHECKBOX) return;
+        type !== FormApp.ItemType.CHECKBOX &&
+        type !== FormApp.ItemType.LIST) return;
 
     var options = [];
     if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
       options = item.asMultipleChoiceItem().getChoices().map(function(c) { return c.getValue(); });
-    } else {
+    } else if (type === FormApp.ItemType.CHECKBOX) {
       options = item.asCheckboxItem().getChoices().map(function(c) { return c.getValue(); });
+    } else if (type === FormApp.ItemType.LIST) {
+      options = item.asListItem().getChoices().map(function(c) { return c.getValue(); });
     }
 
     result.push({
       id:      String(item.getId()),
       title:   item.getTitle(),
-      type:    type === FormApp.ItemType.MULTIPLE_CHOICE ? 'MC' : 'CB',
+      type:    type === FormApp.ItemType.MULTIPLE_CHOICE ? 'MC' :
+               type === FormApp.ItemType.CHECKBOX ? 'CB' : 'DD',
       options: options
     });
   });

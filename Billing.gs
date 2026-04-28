@@ -15,7 +15,7 @@
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-var LEMONSQUEEZY_CHECKOUT_URL  = 'https://app.lemonsqueezy.com/checkout/buy/YOUR_PRODUCT_ID';
+var LEMONSQUEEZY_CHECKOUT_URL  = 'https://googleaddonworkshop.lemonsqueezy.com/checkout/buy/926fac25-6808-4b5a-bd31-876e4135428b';
 var LEMONSQUEEZY_VALIDATE_URL  = 'https://api.lemonsqueezy.com/v1/licenses/validate';
 var FREEMIUM_FORM_LIMIT        = 1;   // max unique forms per calendar month
 

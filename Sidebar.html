@@ -252,7 +252,7 @@
 
   <!-- ── Onboarding Wizard ─────────────────────────────────────────────── -->
   <div id="wizard">
-    <div class="wizard-header">Welcome to Form Event Toolkit</div>
+    <div class="wizard-header">Welcome to SlotGuard</div>
     <div class="wizard-body">
 
       <!-- Step 1: What it does -->
@@ -314,7 +314,7 @@
   <!-- ── Main UI ─────────────────────────────────────────────────────────── -->
   <div class="header">
     <span class="header-icon">🎟️</span>
-    <span class="header-title">Event Toolkit</span>
+    <span class="header-title">SlotGuard</span>
     <button class="header-tab active" id="tab-slots" onclick="showTab('slots')">Slots</button>
     <button class="header-tab" id="tab-account" onclick="showTab('account')">Account</button>
   </div>
@@ -393,7 +393,7 @@
             <div class="freemium-fill" id="freemium-fill" style="width:0%"></div>
           </div>
           <div style="font-size:11px;color:#5f6368;margin-bottom:12px;" id="freemium-label"></div>
-          <button class="btn-primary btn-full" onclick="openCheckout()">Upgrade — $5/mo or $40/yr</button>
+          <button class="btn-primary btn-full" onclick="openCheckout()">Upgrade — $4/mo or $25/yr</button>
           <div style="font-size:11px;color:#5f6368;text-align:center;margin-top:6px;">Unlimited forms · No hidden trials</div>
         </div>
         <div id="plan-paid" style="display:none;">
@@ -416,6 +416,18 @@
           Before removing this add-on, clear your data to delete all triggers and stored settings.
         </div>
         <button class="btn-secondary btn-full" onclick="clearAllData()">Clear all data</button>
+      </div>
+
+      <hr class="divider">
+
+      <div class="account-section">
+        <div class="account-section-title">Legal</div>
+        <div style="font-size:12px;color:#5f6368;line-height:1.7;">
+          <a href="https://gagafik.github.io/slotguard/privacy" target="_blank">Privacy Policy</a>
+          &nbsp;·&nbsp;
+          <a href="https://gagafik.github.io/slotguard/terms" target="_blank">Terms of Service</a>
+        </div>
+        <div style="font-size:11px;color:#aaa;margin-top:6px;">Google Forms™ is a trademark of Google LLC. SlotGuard is not affiliated with Google LLC.</div>
       </div>
 
       <hr class="divider">
@@ -813,7 +825,7 @@ function deactivateLicense() {
 }
 
 function clearAllData() {
-  if (!confirm('Clear all Form Event Toolkit data?\n\nThis will:\n• Delete all slot triggers on your forms\n• Remove all stored settings and license info\n\nYou should do this before uninstalling the add-on.')) return;
+  if (!confirm('Clear all SlotGuard data?\n\nThis will:\n• Delete all slot triggers on your forms\n• Remove all stored settings and license info\n\nYou should do this before uninstalling the add-on.')) return;
 
   google.script.run
     .withSuccessHandler(function() {

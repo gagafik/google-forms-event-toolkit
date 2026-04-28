@@ -268,6 +268,13 @@ function _removeFormOption(formId, questionId, optionText) {
         return c.getValue() !== optionText;
       });
       cb.setChoices(choices2);
+
+    } else if (type === FormApp.ItemType.LIST) {
+      var list     = item.asListItem();
+      var choices3 = list.getChoices().filter(function(c) {
+        return c.getValue() !== optionText;
+      });
+      list.setChoices(choices3);
     }
     return;
   }
@@ -288,7 +295,8 @@ function _getLimitedChoices(e, configMap) {
       var item = ir.getItem();
       var type = item.getType();
       if (type !== FormApp.ItemType.MULTIPLE_CHOICE &&
-          type !== FormApp.ItemType.CHECKBOX) return;
+          type !== FormApp.ItemType.CHECKBOX &&
+          type !== FormApp.ItemType.LIST) return;
 
       var questionId = String(item.getId());
       var answer     = ir.getResponse();
@@ -390,6 +398,14 @@ function _archiveEventLog(ss, sheet) {
   } catch (_ignore) {}
 }
 
+// ─── Web app entry point (for screenshot/preview only) ───────────────────────
+
+function doGet(e) {
+  return HtmlService.createHtmlOutputFromFile('Sidebar')
+    .setTitle('SlotGuard')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
 // ─── Add-on entry point ───────────────────────────────────────────────────────
 
 /**
@@ -397,8 +413,22 @@ function _archiveEventLog(ss, sheet) {
  * Declared here so it's always available; sidebar rendering is in Onboarding.gs.
  */
 function onFormOpen(e) {
-  var ui = FormApp.getUi();
-  ui.createAddonMenu()
-    .addItem('Open Event Toolkit', 'showSidebar')
-    .addToUi();
+  return CardService.newCardBuilder()
+    .setHeader(CardService.newCardHeader()
+      .setTitle('SlotGuard')
+      .setSubtitle('Response Limiter for Google Forms'))
+    .addSection(CardService.newCardSection()
+      .addWidget(CardService.newDecoratedText()
+        .setText('Limit responses, cap choices, and auto-close your forms.'))
+      .addWidget(CardService.newTextButton()
+        .setText('Open SlotGuard')
+        .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
+        .setOnClickAction(CardService.newAction().setFunctionName('openSidebarFromCard')))
+    )
+    .build();
+}
+
+function openSidebarFromCard(e) {
+  showSidebar();
+  return CardService.newActionResponseBuilder().build();
 }

@@ -3,6 +3,9 @@
   "dependencies": {},
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8",
+  "urlFetchWhitelist": [
+    "https://api.lemonsqueezy.com/"
+  ],
   "oauthScopes": [
     "https://www.googleapis.com/auth/forms",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -13,7 +16,7 @@
   ],
   "addOns": {
     "common": {
-      "name": "Form Event Toolkit",
+      "name": "SlotGuard",
       "logoUrl": "https://www.gstatic.com/images/branding/product/1x/forms_48dp.png",
       "layoutProperties": {
         "primaryColor": "#4285F4"
@@ -22,7 +25,7 @@
         "runFunction": "onFormOpen"
       },
       "openLinkUrlPrefixes": [
-        "https://app.lemonsqueezy.com"
+        "https://googleaddonworkshop.lemonsqueezy.com"
       ]
     },
     "forms": {}
