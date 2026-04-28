@@ -2,7 +2,7 @@
  * Billing.gs — License validation and freemium enforcement
  *
  * Architecture:
- *   - LemonSqueezy for checkout + license key activation
+ *   - Gumroad for checkout + license key activation
  *   - PropertiesService (UserProperties) for persistence
  *   - Freemium: 1 form/month, resets on calendar month rollover
  *
@@ -15,18 +15,19 @@
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-var LEMONSQUEEZY_CHECKOUT_URL  = 'https://googleaddonworkshop.lemonsqueezy.com/checkout/buy/926fac25-6808-4b5a-bd31-876e4135428b';
-var LEMONSQUEEZY_VALIDATE_URL  = 'https://api.lemonsqueezy.com/v1/licenses/validate';
-var FREEMIUM_FORM_LIMIT        = 1;   // max unique forms per calendar month
+var GUMROAD_CHECKOUT_URL  = 'https://gagafik.gumroad.com/l/slotguard';
+var GUMROAD_VALIDATE_URL  = 'https://api.gumroad.com/v2/licenses/verify';
+var GUMROAD_PRODUCT_ID    = '-kXpJZmKKqRg_uXznXXebQ==';
+var FREEMIUM_FORM_LIMIT   = 1;   // max unique forms per calendar month
 
 // ─── Checkout ─────────────────────────────────────────────────────────────────
 
 /**
- * Returns the LemonSqueezy checkout URL.
+ * Returns the Gumroad checkout URL.
  * Called from sidebar: google.script.run.withSuccessHandler(url => window.open(url, '_blank')).getCheckoutUrl()
  */
 function getCheckoutUrl() {
-  return LEMONSQUEEZY_CHECKOUT_URL;
+  return GUMROAD_CHECKOUT_URL;
 }
 
 // ─── License activation ───────────────────────────────────────────────────────
@@ -42,21 +43,24 @@ function activateLicense(key) {
     return { success: false, error: 'No key provided.' };
   }
 
-  // Basic UUID v4 format check before making HTTP call
-  var uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(key.trim())) {
-    return { success: false, error: 'Invalid key format. Keys look like: xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx' };
+  // Gumroad license key format: XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX
+  var keyRegex = /^[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}$/i;
+  if (!keyRegex.test(key.trim())) {
+    return { success: false, error: 'Invalid key format. Keys look like: XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX' };
   }
 
   try {
-    var response = UrlFetchApp.fetch(LEMONSQUEEZY_VALIDATE_URL, {
+    var payload = 'product_id=' + encodeURIComponent(GUMROAD_PRODUCT_ID) +
+                  '&license_key=' + encodeURIComponent(key.trim()) +
+                  '&increment_uses_count=false';
+
+    var response = UrlFetchApp.fetch(GUMROAD_VALIDATE_URL, {
       method: 'POST',
-      contentType: 'application/json',
-      payload: JSON.stringify({ license_key: key.trim() }),
+      contentType: 'application/x-www-form-urlencoded',
+      payload: payload,
       muteHttpExceptions: true
     });
 
-    var code = response.getResponseCode();
     var body;
     try {
       body = JSON.parse(response.getContentText());
@@ -64,7 +68,7 @@ function activateLicense(key) {
       return { success: false, error: 'Unexpected response from billing server.' };
     }
 
-    if (code === 200 && body.valid) {
+    if (body.success) {
       var props = PropertiesService.getUserProperties();
       props.setProperties({
         licenseKey:    key.trim(),
@@ -73,11 +77,7 @@ function activateLicense(key) {
       return { success: true };
     }
 
-    if (code === 404 || (body && !body.valid)) {
-      return { success: false, error: 'License key not found or already used on another account.' };
-    }
-
-    return { success: false, error: 'Billing server returned status ' + code + '.' };
+    return { success: false, error: body.message || 'License key not found or invalid.' };
 
   } catch (err) {
     return { success: false, error: 'Network error: ' + String(err) };
